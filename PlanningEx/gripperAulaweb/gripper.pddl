@@ -37,5 +37,4 @@
                             (at_robby ?r) (carry ?g ?b))
         :effect (and (at_ball ?b ?r) (free ?g) (not (carry ?g ?b)))
     )
-
 )
