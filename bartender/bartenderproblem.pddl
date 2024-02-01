@@ -3,27 +3,28 @@
     (:objects 
         glass1 glass2 glass3 glass4
         dispenser
-        left right
-        mario luigi filippo fabio
-        
-        )
+        left right        
+    )
 
     (:init
         ;todo: put the initial state's facts and numeric values here
         (GLASS glass1) (GLASS glass2) (GLASS glass3) (GLASS glass4)
         (DISPENSER dispenser)
-        (GRIPPER left) (GRIPPER right)
-        (COSTUMER mario) (COSTUMER luigi) (COSTUMER filippo) (COSTUMER fabio)
+        (HAND left) (HAND right)
+        
 
         ; Fluents
-        (free left) (free right)
         (empty glass1) (empty glass2) (empty glass3) (empty glass4)
-        (different left right)
-        (unhook dispenser)
+        (free left) (free right)
+        (in_shelf glass1) (in_shelf glass2) (in_shelf glass3) (in_shelf glass4)
+
     )
 
     (:goal (and
-        (served mario) (served luigi) (served filippo) (served fabio)
+        (served glass1) 
+        (served glass2)
+        (served glass3)
+        (served glass4)
     ))
 
     ;un-comment the following line if metric is needed
