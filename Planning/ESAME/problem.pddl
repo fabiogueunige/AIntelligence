@@ -33,7 +33,4 @@
         )
     
     )
-
-;un-comment the following line if metric is needed
-;(:metric minimize (???))
 )
