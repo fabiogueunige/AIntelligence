@@ -6,7 +6,7 @@
     (:requirements :strips :fluents :durative-actions :timed-initial-literals :typing :conditional-effects :negative-preconditions :duration-inequalities :equality)
 
     (:types ;todo: enumerate types and their hierarchy here, e.g. car truck bus - vehicle
-        water sugar milk cofee - ingredient
+        water sugar milk coffee - ingredient
         beans ground - coffee
         ; attento che prendi i contenitori
         drawer closet fridge hand - locations
