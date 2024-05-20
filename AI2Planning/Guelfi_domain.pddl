@@ -11,11 +11,10 @@
         ; for ground put true precondition ground
         hand - location
         ; put sink and table as open as true
-        grinder - machine
-        water_tap
-        spoon cutter - tool
+        burner grinder - machine
+        cup spoon cutter - tool
         ingredient tool moka - movable
-        ingredient location - openable
+        water_tap ingredient location - openable
         bottom_pot top_pot filter - moka
     )
 
@@ -29,6 +28,7 @@
         (at_machine ?m - machine ?l - location)
         (different ?h1 - hand ?h2 - hand)
         (open ?o - openable)
+        (close ?o - openable)
         (ground_ready ?c - coffee)
         (filled ?m - machine)
         (machine_on ?m)
@@ -36,17 +36,20 @@
         (ing_ready ?i - ingredient)
         (separate_pot ?p1 - bottom_pot ?p2 - top_pot)
         (toghether ?p1 - bottom_pot ?p2 - top_pot)
+        
+        ; Step 3 & 4 predicates
+        (tapTOwater ?w - water_tap ?i - ingredient)
+        (wt_on ?w - water_tap)
+        (at_wt ?w - water_tap ?l - location)
         (filter_on ?f - filter)
         (coffe_in_filter ?f - filter ?c - coffee)
-        
+
+        ; Step 5 predicates
+        (fire_on ?b - burner)
+        (fire_ok ?b - burner)
+        (fire_off ?b - burner)
         ; close ingredients ecc come condizione vera per tutto per
         ; terminare la ricetta
-        ; water tap preconditions
-        (tapTOwater ?w - water_tap ?i - ingredient)
-        (wt_on ?w - water_tap)	
-        (at_water ?w - water_tap ?l - location)
-        (open_tp ?w - water_tap)
-        (readyTOwt ?w - water_tap)
     )
 
 
@@ -97,6 +100,7 @@
             (be ?l)
         )
         :effect (and 
+            (not (close ?l))
             (open ?l)
         )
     )
@@ -109,6 +113,7 @@
         )
         :effect (and 
             (open ?i)
+            (not (close ?i))
         )
     )
 
@@ -121,6 +126,7 @@
         )
         :effect (and 
             (not (open ?l))
+            (close ?l)
         )
     )
 
@@ -133,6 +139,7 @@
         )
         :effect (and 
             (not (open ?i))
+            (close ?i)
         )
     )
 
@@ -148,30 +155,33 @@
         )
         :effect (and 
             (filled ?m)
+            (not (at ?i ?h))
             (at ?i ?l)
             (free ?h)
         )
     )
 
-    (:action machine_on
-        :parameters (?l - location ?m - machine ?h - hand)
+    (:action grind_on
+        :parameters (?l - location ?g - grinder ?h - hand)
         :precondition (and 
-            (at_machine ?m ?l)
-            (filled ?m)
+            (at_machine ?g ?l)
+            (filled ?g)
             (be ?l)
             (free ?h)
         )
         :effect (and 
-            (machine_on ?m)
+            (machine_on ?g)
         )
     )
 
     (:action grind 
-        :parameters (?b - beans ?g - grinder ?w - water_tap)
+        :parameters (?b - beans ?g - grinder ?l - location)
         :precondition (and 
             (open ?b)
             (filled ?g)
             (machine_on ?g)
+            (at_machine ?g ?l)
+            (at ?b ?l)
         )
         :effect (and 
             (ground_ready ?b)
@@ -179,16 +189,16 @@
         )
     )
 
-    (:action machine_off 
-        :parameters (?i - ingredient ?m - machine ?h - hand)
+    (:action grind_off 
+        :parameters (?b - beans ?g - grinder ?h - hand)
         :precondition (and 
-            (ing_ready ?i)
+            (ing_ready ?b)
             (free ?h)
+            (machine_on ?g)
         )
         :effect (and 
-            (not (machine_on ?m))
-            (machine_off ?m)
-            ; completa precondition
+            (not (machine_on ?g))
+            (machine_off ?g)
         )
     )
     ; if problems with water tap keep being there thn change machine on and off
@@ -196,19 +206,16 @@
 
     ; Start of step 3 actions (screw and unscrew) and fill the water
     (:action unscrew_moka
-        :parameters (?p1 - bottom_pot ?p2 - top_pot ?h1 - hand ?h2 - hand ?w - water_tap)
+        :parameters (?p1 - bottom_pot ?p2 - top_pot ?h1 - hand ?h2 - hand)
         :precondition (and 
             (toghether ?p1 ?p2)
             (at ?p1 ?h1)
-            (different ?h1 ?h2)
             (free ?h2)
         )
         :effect (and 
             (not (free ?h2)) (not(toghether ?p1 ?p2))
             (at ?p2 ?h2)
-            (at ?p1 ?h1)
             (separate_pot ?p1 ?p2)
-            (readyTOwt ?w)
         )
     )
 
@@ -228,25 +235,24 @@
     )
 
     (:action open_tap
-        :parameters (?w - water_tap ?h - hand ?l - location)
+        :parameters (?p1 - bottom_pot ?p2 - top_pot ?h1 - hand ?h2 - hand ?w - water_tap ?l - location)
         :precondition (and 
-            (free ?h)
-            (at_water ?w ?l)
+            (free ?h2)
+            (at ?p1 ?h1)
+            (at_wt ?w ?l)
             (be ?l)
-            (readyTOwt ?w)
         )
         :effect (and 
-            (open_tp ?w)
-            (not (readyTOwt ?w))
+            (open ?w)
         )
     )
     
     (:action refill_water
-        :parameters (?p1 - bottom_pot ?p2 - top_pot ?h - hand ?w - water_tap)
+        :parameters (?p - bottom_pot ?p2 - top_pot ?h - hand ?w - water_tap)
         :precondition (and 
-            (at ?p1 ?h)
-            (separate_pot ?p1 ?p2)
-            (open_tp ?w)
+            (at ?p ?h)
+            (open ?w)
+            (separate_pot ?p ?p2)
         )
         :effect (and 
             (wt_on ?w)
@@ -258,24 +264,22 @@
         :precondition (and 
             (free ?h)
             (wt_on ?w)
-            (open_tp ?w)
             (tapTOwater ?w ?i)
         )
         :effect (and 
             (ing_ready ?i)
-            (not (wt_on ?w))
-            (not (open_tp ?w))
+            (not (open ?w))
+            (close ?w)
         )
     )
     
     ; Start of step 4 add coffee to basket and level it, add filter to bottom pwrt
     (:action insert_filter
-        :parameters (?p - bottom_pot ?p1 - top_pot ?f - filter ?h1 - hand ?h2 - hand ?i - ingredient ?w - water_tap)
+        :parameters (?p - bottom_pot ?p1 - top_pot ?f - filter ?h1 - hand ?h2 - hand ?w - water_tap)
         :precondition (and 
             (at ?p ?h1)
             (at ?f ?h2)
-            (tapTOwater ?w ?i)
-            (ing_ready ?i)
+            (close ?w)
             (separate_pot ?p ?p1)
         )
         :effect (and 
@@ -290,18 +294,54 @@
         :precondition (and 
             (filter_on ?f)
             (at ?s ?h1)
+            (be ?l)
             (at ?p ?l)
             (ing_ready ?c)
-            (at ?c ?h2)
-            (be ?l)
+            (at ?c ?l)
             (separate_pot ?p ?p1)
         )
         :effect (and 
             (coffe_in_filter ?f ?c)
-            (not (at ?c ?h2))
-            (free ?h2)
         )
     )
-    ; 3 e 4 non funzionanp piu. Water tap ha fatto saltare tutto
-    ; Ogni volta apre il frigo e quella minchia di latte
+
+    ; Step number 5. Everything has to be optimized
+    (:action burner_on
+        :parameters (?b - burner ?l - location ?h - hand ?p - bottom_pot ?p1 - top_pot ?f - filter ?c - coffee)
+        :precondition (and 
+            (coffe_in_filter ?f ?c)
+            (toghether ?p ?p1)
+            (at ?p ?l)
+            (at_machine ?b ?l)
+            (be ?l)
+            (free ?h)
+        )
+        :effect (and 
+            (fire_on ?b)
+        )
+    )
+
+    (:action set_fire
+        :parameters (?h - hand ?b - burner)
+        :precondition (and 
+            (fire_on ?b)
+            (free ?h)
+        )
+        :effect (and 
+            (fire_ok ?b)
+        )
+    )
+
+    (:action burner_off
+        :parameters (?h - hand ?b - burner)
+        :precondition (and 
+            (fire_ok ?b)
+            (free ?h)
+        )
+        :effect (and 
+            (fire_off ?b)
+            (not (fire_on ?b))
+            (not (fire_ok ?b))
+        )
+    )
 )
