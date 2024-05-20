@@ -3,7 +3,7 @@
         water sugar milk - ingredient
         ground - ground
         beans - beans
-        stovetop drawer closet fridge sink table crafttable - location ; drawer = cassetto
+        host_pos stovetop drawer closet fridge sink table crafttable - location ; drawer = cassetto
         left right - hand
         wt - water_tap
         gr - grinder
@@ -13,6 +13,7 @@
         filter - filter
         spoon - spoon 
         cutter - cutter 
+        cup - cup
     )
 
     (:init
@@ -36,6 +37,9 @@
         (at_wt wt sink)
         (open stovetop) 
         (at_machine burner stovetop)
+        (at cup closet)
+        (open host_pos)
+        (host_location host_pos)
     )
 
     (:goal (and
@@ -43,7 +47,7 @@
         (ing_ready beans)
         (machine_off gr)
         (ing_ready water)
-        (fire_off burner)
+        (delivery_ok cup)
     ))
 
 ;un-comment the following line if metric is needed

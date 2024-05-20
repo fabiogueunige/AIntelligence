@@ -31,8 +31,8 @@
         (close ?o - openable)
         (ground_ready ?c - coffee)
         (filled ?m - machine)
-        (machine_on ?m)
-        (machine_off ?m)
+        (machine_on ?m - machine)
+        (machine_off ?m - machine)
         (ing_ready ?i - ingredient)
         (separate_pot ?p1 - bottom_pot ?p2 - top_pot)
         (toghether ?p1 - bottom_pot ?p2 - top_pot)
@@ -50,6 +50,10 @@
         (fire_off ?b - burner)
         ; close ingredients ecc come condizione vera per tutto per
         ; terminare la ricetta
+        ; Step 6
+        (cup_ready ?c - cup)
+        (delivery_ok ?c - cup)
+        (host_location ?l - location)
     )
 
 
@@ -332,7 +336,7 @@
         )
     )
 
-    (:action burner_off
+    (:action burner_off_ready
         :parameters (?h - hand ?b - burner)
         :precondition (and 
             (fire_ok ?b)
@@ -344,4 +348,36 @@
             (not (fire_ok ?b))
         )
     )
+
+    (:action pour_in_cup
+        :parameters (?p - bottom_pot ?p1 - top_pot ?l - location ?h1 - hand ?h2 - hand ?c - cup ?b - burner)
+        :precondition (and 
+            (fire_off ?b)
+            (toghether ?p ?p1)
+            (at ?p ?h1)
+            (at ?c ?h2)
+            (be ?l)
+        )
+        :effect (and 
+            (cup_ready ?c)
+        )
+    )
+
+    (:action bring_to_host
+        :parameters (?c - cup ?h - hand ?l - location)
+        :precondition (and 
+            (be ?l)
+            (at ?c ?h)
+            (host_location ?l)
+            (cup_ready ?c)
+        )
+        :effect (and 
+            (delivery_ok ?c)
+        )
+    ) 
+    ; Now:
+    ; - improve the plan and the actions performing the steps
+    ; - add possibility to add igredients to the coffee 
+    ; - wash the moka and put everything back in place
+    ; - close all the locations opened
 )
