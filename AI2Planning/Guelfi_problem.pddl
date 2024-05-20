@@ -9,7 +9,9 @@
         gr - grinder
         btt_pot - bottom_pot
         top_pot - top_pot
-        spoon cutter - tool
+        filter - filter
+        spoon - spoon
+        cutter - cutter
     )
 
     (:init
@@ -19,9 +21,9 @@
         (at_machine gr crafttable)
         (at btt_pot closet)
         (at top_pot closet)
-        (at_machine wt sink)
+        (at filter closet)
+        (at_water wt sink)
         (tapTOwater wt water)
-        (filled wt)
         (toghether btt_pot top_pot)
         (open sink) (open table)
         (open crafttable)
@@ -29,14 +31,14 @@
         (at sugar closet) (at milk fridge)
         (at beans closet) (at ground closet)
         (at spoon drawer) (at cutter drawer)
+        (ing_ready water)
 
     )
 
     (:goal (and
         ;todo: put the goal condition here
-        (ground_ready beans)
         (machine_off gr)
-        (ing_ready water)
+        (coffe_in_filter filter beans)
     ))
 
 ;un-comment the following line if metric is needed
