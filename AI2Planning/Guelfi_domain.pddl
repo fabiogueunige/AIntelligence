@@ -5,68 +5,74 @@
     ;remove requirements that are not needed
     (:requirements :strips :fluents :typing :equality)
 
-    (:types ;todo: enumerate types and their hierarchy here, e.g. car truck bus - vehicle
+    (:types 
+        ; Ingredient to cook coffee
         coffee - ingredient
+        ; Type of coffee
         beans ground - coffee
-        ; for ground put true precondition ground
+        ; location in the kitchen
         hand - location
-        ; put sink and table as open as true
+        ; machine to cook coffee
         burner grinder - machine
+        ; tool for rhe preparation
         cup spoon cutter - tool
+        ; Proporty of big groups of objects
         ingredient tool moka - movable
         water_tap ingredient location - openable
-        bottom_pot top_pot filter - moka
-        
+        ; moka components
+        bottom_pot top_pot filter - moka   
     )
 
-    ; un-comment following line if constants are needed
-    ;(:constants )
-
     (:predicates ;todo: define predicates here
+        ; Location predicates
         (be ?l - location)
         (free ?h - hand)
         (at ?m - movable ?l - location)
         (at_machine ?m - machine ?l - location)
+        (host_location ?l - location)
+
+        ; Openable predicates
         (open ?o - openable)
         (close ?o - openable)
-        (ground_ready ?c - coffee)
+
+        ; Ingredient predicates
+        (ing_ready ?i - ingredient)
+
+        ; Machine predicates
         (filled ?m - machine)
         (machine_on ?m - machine)
         (machine_off ?m - machine)
-        (ing_ready ?i - ingredient)
+
+        ; Moka and coffee predicates
+        (ground_ready ?c - coffee)
         (separate_pot ?p1 - bottom_pot ?p2 - top_pot)
         (toghether ?p1 - bottom_pot ?p2 - top_pot)
-        
-        ; Step 3 & 4 predicates
-        (tapTOwater ?w - water_tap ?i - ingredient)
-        (wt_on ?w - water_tap)
-        (at_wt ?w - water_tap ?l - location)
+        (free_coffee ?m - moka)
         (filter_on ?f - filter)
         (filter_off ?f - filter)
         (coffe_in_filter ?f - filter ?c - coffee)
-
-        ; Step 5 predicates
+        (finished ?c - coffee)
+        
+        ; Water tap predicates
+        (tapTOwater ?w - water_tap ?i - ingredient)
+        (wt_on ?w - water_tap)
+        (at_wt ?w - water_tap ?l - location)
+        (end_wash ?w - water_tap)
+        
+        ; Stovetop predicates
         (fire_on ?b - burner)
         (fire_ok ?b - burner)
         (fire_off ?b - burner)
-        ; close ingredients ecc come condizione vera per tutto per
-        ; terminare la ricetta
-        ; Step 6
-        (finished ?c - coffee)
+
+        ; Tool predicates
         (cup_ready ?c - cup)
         (delivery_ok ?c - cup)
-        (host_location ?l - location)
         (washed ?m - movable)
-        (end_wash ?w - water_tap)
-        (free_coffee ?m - moka)
     )
 
-
-    ;(:functions ;todo: define numeric functions here
-    ;)
-
     ;define actions to grab object here (ingredients, tools)
-    (:action pick_up
+
+    (:action pick_up ; pick up an object
         :parameters (?m - movable ?l - location ?h - hand)
         :precondition (and 
             (at ?m ?l)
@@ -80,7 +86,7 @@
         )
     )
 
-    (:action put_down
+    (:action put_down ; put down an object
         :parameters (?m - movable ?l - location ?h - hand)
         :precondition (and 
             (at ?m ?h)
@@ -94,15 +100,14 @@
         )
     )
 
-    (:action move
+    (:action move ; move the robot to a location
         :parameters (?l1 - location ?l2 - location)
         :precondition (and (be ?l1))
         :effect (and (not (be ?l1)) 
         (be ?l2))
     )
     
-
-    (:action open
+    (:action open ; open a location
         :parameters (?l - location ?h - hand)
         :precondition (and 
             (free ?h)
@@ -114,7 +119,7 @@
         )
     )
 
-    (:action open_ingredients
+    (:action open_ingredients ; open an ingredient
         :parameters (?i - ingredient ?h1 - hand ?h2 - hand ?c - cutter)
         :precondition (and 
             (at ?c ?h1)
@@ -126,7 +131,7 @@
         )
     )
 
-    (:action close
+    (:action close ; close a location
         :parameters (?l - location ?h - hand)
         :precondition (and 
             (open ?l)
@@ -139,7 +144,7 @@
         )
     )
 
-    (:action close_ingredients
+    (:action close_ingredients ; close an ingredient
         :parameters (?i - ingredient ?h1 - hand ?h2 - hand)
         :precondition (and 
             (open ?i)
@@ -152,9 +157,7 @@
         )
     )
 
-    ; Start of step 2 actions
-
-    (:action pour_in 
+    (:action pour_in ; pour an ingredient in a machine
         :parameters (?i - ingredient ?m - machine ?h - hand ?l - location)
         :precondition (and 
             (at ?i ?h)
@@ -170,7 +173,7 @@
         )
     )
 
-    (:action grind_on
+    (:action grind_on ; turn on the grinder
         :parameters (?l - location ?g - grinder ?h - hand)
         :precondition (and 
             (at_machine ?g ?l)
@@ -183,7 +186,7 @@
         )
     )
 
-    (:action grind 
+    (:action grind ; grind the beans
         :parameters (?b - beans ?g - grinder ?l - location)
         :precondition (and 
             (open ?b)
@@ -198,7 +201,7 @@
         )
     )
 
-    (:action grind_off 
+    (:action grind_off ; turn off the grinder
         :parameters (?b - beans ?g - grinder ?h - hand)
         :precondition (and 
             (ing_ready ?b)
@@ -210,11 +213,8 @@
             (machine_off ?g)
         )
     )
-    ; if problems with water tap keep being there thn change machine on and off
-    ; with grind on and grind off
 
-    ; Start of step 3 actions (screw and unscrew) and fill the water
-    (:action unscrew_moka
+    (:action unscrew_moka ; unscrew the moka
         :parameters (?p1 - bottom_pot ?p2 - top_pot ?h1 - hand ?h2 - hand)
         :precondition (and 
             (toghether ?p1 ?p2)
@@ -229,7 +229,7 @@
         )
     )
 
-    (:action screw_moka
+    (:action screw_moka ; screw the moka
         :parameters (?p1 - bottom_pot ?p2 - top_pot ?h1 - hand ?h2 - hand)
         :precondition (and 
             (separate_pot ?p1 ?p2)
@@ -244,7 +244,7 @@
         )
     )
 
-    (:action open_tap
+    (:action open_tap ; open the water tap
         :parameters (?p1 - bottom_pot ?p2 - top_pot ?h1 - hand ?h2 - hand ?w - water_tap ?l - location)
         :precondition (and 
             (free ?h2)
@@ -258,7 +258,7 @@
         )
     )
     
-    (:action refill_water
+    (:action refill_water ; refill the water in the moka
         :parameters (?p - bottom_pot ?p2 - top_pot ?h - hand ?w - water_tap)
         :precondition (and 
             (at ?p ?h)
@@ -270,7 +270,7 @@
         )
     )
 
-    (:action close_tap
+    (:action close_tap ; close the water tap
         :parameters (?w - water_tap ?h - hand ?i - ingredient)
         :precondition (and 
             (free ?h)
@@ -283,9 +283,8 @@
             (close ?w)
         )
     )
-    
-    ; Start of step 4 add coffee to basket and level it, add filter to bottom pwrt
-    (:action insert_filter
+
+    (:action insert_filter ; insert the filter in the moka
         :parameters (?p - bottom_pot ?p1 - top_pot ?f - filter ?h1 - hand ?h2 - hand ?w - water_tap)
         :precondition (and 
             (at ?p ?h1)
@@ -300,7 +299,7 @@
         )
     )
 
-    (:action remove_filter
+    (:action remove_filter ; remove the filter from the moka
         :parameters (?p - bottom_pot ?p1 - top_pot ?f - filter ?h1 - hand ?h2 - hand ?cof - coffee)
         :precondition (and 
             (at ?p ?h1)
@@ -315,7 +314,7 @@
         )
     )
 
-    (:action coffe_in_filter
+    (:action coffe_in_filter ; put the coffee in the filter with a spoon
         :parameters (?f - filter ?p - bottom_pot ?p1 - top_pot ?l - location ?h1 - hand ?h2 - hand ?c - coffee ?s - spoon)
         :precondition (and 
             (filter_on ?f)
@@ -333,8 +332,7 @@
         )
     )
 
-    ; Step number 5. Everything has to be optimized
-    (:action burner_on
+    (:action burner_on ; turn on the burner
         :parameters (?b - burner ?l - location ?h - hand ?p - bottom_pot ?p1 - top_pot ?f - filter ?c - coffee)
         :precondition (and 
             (coffe_in_filter ?f ?c)
@@ -349,7 +347,7 @@
         )
     )
 
-    (:action set_fire
+    (:action set_fire ; set the fire on the burner as medium
         :parameters (?h - hand ?b - burner)
         :precondition (and 
             (fire_on ?b)
@@ -360,7 +358,7 @@
         )
     )
 
-    (:action burner_off_ready
+    (:action burner_off_ready ; turn off the burner
         :parameters (?h - hand ?b - burner)
         :precondition (and 
             (fire_ok ?b)
@@ -373,7 +371,7 @@
         )
     )
 
-    (:action pour_in_cup
+    (:action pour_in_cup ; pour the coffee in the cup
         :parameters (?p - bottom_pot ?p1 - top_pot ?l - location ?h1 - hand ?h2 - hand ?c - cup ?b - burner)
         :precondition (and 
             (fire_off ?b)
@@ -388,7 +386,7 @@
         )
     )
 
-    (:action bring_to_host
+    (:action bring_to_host ; bring the cup to the host
         :parameters (?c - cup ?h - hand ?l - location )
         :precondition (and 
             (be ?l)
@@ -400,16 +398,13 @@
             (delivery_ok ?c)
         )
     ) 
-    ; Now:
-    ; - improve the plan and the actions performing the steps
-    ; - add possibility to add igredients to the coffee 
-    ; - wash the moka and put everything back in place
-    ; - close all the locations opened
-    (:action wait_to_finish
+
+    (:action wait_to_finish ; wait for the host to finish the coffee
         :parameters (?c - cup ?cof - coffee ?l - location ?f - filter)
         :precondition (and 
             (delivery_ok ?c)
             (be ?l)
+            (at ?c ?l)
             (host_location ?l)
             (coffe_in_filter ?f ?cof)
         )
@@ -418,8 +413,7 @@
         )
     )
     
-    
-    (:action wash
+    (:action wash ; wash the tools and the moka
         :parameters (?m - movable ?w - water_tap ?l - location ?h - hand ?cof - coffee ?p1 - bottom_pot ?p2 - top_pot)
         :precondition (and 
             (finished ?cof)
@@ -433,7 +427,7 @@
         )
     )
 
-    (:action wash_complete
+    (:action wash_complete ; Check if everything has been washed
         :parameters (?c - cup ?s - spoon ?f - filter ?w - water_tap ?p1 - bottom_pot ?p2 - top_pot)
         :precondition (and 
             (close ?w)
@@ -449,5 +443,5 @@
             (end_wash ?w)
         )
     )
-    
+    ; End of the actions of the domain
 )
