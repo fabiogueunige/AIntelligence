@@ -16,7 +16,6 @@
         ingredient tool moka - movable
         water_tap ingredient location - openable
         bottom_pot top_pot filter - moka
-        
     )
 
     ; un-comment following line if constants are needed
@@ -27,6 +26,7 @@
         (free ?h - hand)
         (at ?m - movable ?l - location)
         (at_machine ?m - machine ?l - location)
+        (different ?h1 - hand ?h2 - hand)
         (open ?o - openable)
         (close ?o - openable)
         (ground_ready ?c - coffee)
@@ -42,7 +42,6 @@
         (wt_on ?w - water_tap)
         (at_wt ?w - water_tap ?l - location)
         (filter_on ?f - filter)
-        (filter_off ?f - filter)
         (coffe_in_filter ?f - filter ?c - coffee)
 
         ; Step 5 predicates
@@ -52,13 +51,16 @@
         ; close ingredients ecc come condizione vera per tutto per
         ; terminare la ricetta
         ; Step 6
-        (finished ?c - coffee)
         (cup_ready ?c - cup)
         (delivery_ok ?c - cup)
         (host_location ?l - location)
+
+        ; My added actions
+        (init_pos ?m - movable ?l - location)
         (washed ?m - movable)
-        (end_wash ?w - water_tap)
-        (free_coffee ?m - moka)
+        (wash_pos ?m - movable ?l - location)
+        (ok_pos ?m - movable)
+        (end_coffee ?c - coffee)
     )
 
 
@@ -76,6 +78,7 @@
         )
         :effect (and 
             (not (at ?m ?l)) (not(free ?h))
+            (not (ok_pos ?m))
             (at ?m ?h)
         )
     )
@@ -220,7 +223,6 @@
             (toghether ?p1 ?p2)
             (at ?p1 ?h1)
             (free ?h2)
-            (free_coffee ?p1)
         )
         :effect (and 
             (not (free ?h2)) (not(toghether ?p1 ?p2))
@@ -254,7 +256,6 @@
         )
         :effect (and 
             (open ?w)
-            (not (open ?w))
         )
     )
     
@@ -300,21 +301,6 @@
         )
     )
 
-    (:action remove_filter
-        :parameters (?p - bottom_pot ?p1 - top_pot ?f - filter ?h1 - hand ?h2 - hand ?cof - coffee)
-        :precondition (and 
-            (at ?p ?h1)
-            (filter_on ?f)
-            (separate_pot ?p ?p1)
-            (finished ?cof)
-        )
-        :effect (and 
-            (filter_off ?f)
-            (not (filter_on ?f))
-            (at ?f ?h2)
-        )
-    )
-
     (:action coffe_in_filter
         :parameters (?f - filter ?p - bottom_pot ?p1 - top_pot ?l - location ?h1 - hand ?h2 - hand ?c - coffee ?s - spoon)
         :precondition (and 
@@ -323,13 +309,11 @@
             (be ?l)
             (at ?p ?l)
             (ing_ready ?c)
-            (open ?c)
             (at ?c ?l)
             (separate_pot ?p ?p1)
         )
         :effect (and 
             (coffe_in_filter ?f ?c)
-            (not (free_coffee ?p))
         )
     )
 
@@ -384,12 +368,11 @@
         )
         :effect (and 
             (cup_ready ?c)
-            (free_coffee ?p)
         )
     )
 
     (:action bring_to_host
-        :parameters (?c - cup ?h - hand ?l - location )
+        :parameters (?c - cup ?h - hand ?l - location)
         :precondition (and 
             (be ?l)
             (at ?c ?h)
@@ -405,48 +388,45 @@
     ; - add possibility to add igredients to the coffee 
     ; - wash the moka and put everything back in place
     ; - close all the locations opened
-    (:action wait_to_finish
-        :parameters (?c - cup ?cof - coffee ?l - location ?f - filter)
+    (:action put_back
+        :parameters (?m - movable ?l - location ?h - hand ?c - cup)
         :precondition (and 
-            (delivery_ok ?c)
+            (init_pos ?m ?l)
             (be ?l)
-            (host_location ?l)
-            (coffe_in_filter ?f ?cof)
+            (at ?m ?h)
+            (delivery_ok ?c)
         )
         :effect (and 
-            (finished ?cof)
+            (not (at ?m ?h))
+            (free ?h)
+            (at ?m ?l)
+            (ok_pos ?m)
         )
     )
-    
-    
+
     (:action wash
-        :parameters (?m - movable ?w - water_tap ?l - location ?h - hand ?cof - coffee ?p1 - bottom_pot ?p2 - top_pot)
+        :parameters (?m - movable ?l - location ?h - hand ?w - water_tap ?c - cup)
         :precondition (and 
-            (finished ?cof)
-            (at_wt ?w ?l)
             (at ?m ?h)
             (be ?l)
-            (separate_pot ?p1 ?p2)
+            (wash_pos ?m ?l)
+            (open ?w)
+            (free ?h)
+            (delivery_ok ?c)
         )
         :effect (and 
             (washed ?m)
         )
     )
 
-    (:action wash_complete
-        :parameters (?c - cup ?s - spoon ?f - filter ?w - water_tap ?p1 - bottom_pot ?p2 - top_pot)
+    (:action end_wash
+        :parameters (?w - water_tap ?m - movable ?c - coffee)
         :precondition (and 
+            (washed ?m)
             (close ?w)
-            (separate_pot ?p1 ?p2)
-            (washed ?c)
-            (washed ?s)
-            (washed ?f)
-            (washed ?p1)
-            (washed ?p2)
-
         )
         :effect (and 
-            (end_wash ?w)
+            (end_coffee ?c)
         )
     )
     
